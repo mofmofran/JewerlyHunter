@@ -175,7 +175,22 @@ MonoBehaviour:
   jump: 9
   groundLayer:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 192
+  stopAnime: PlayerStop
+  moveAnime: PlayerMove
+  jumpAnime: PlayerJump
+  goalAnime: PlayerGoal
+  deadAnime: PlayerOver
+  camLeft: 0
+  camRight: 0
+  camTop: 0
+  camBottom: 0
+  subscreen: {fileID: 0}
+  isForceScrollx: 0
+  forceScrollSpeedx: 0.5
+  isForceScrolly: 0
+  forceScrollSpeedy: 0.5
+  score: 0
 --- !u!95 &-2481634871945794415
 Animator:
   serializedVersion: 7

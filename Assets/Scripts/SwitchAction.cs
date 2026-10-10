@@ -10,13 +10,13 @@ public class SwitchAction : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        if (on)
+        if (on)//onならば
         {
-            GetComponent<SpriteRenderer>().sprite = imageOn;
+            GetComponent<SpriteRenderer>().sprite = imageOn;//オンの画像を取ってくる
         }
-        else
+        else//違うならば
         {
-            GetComponent<SpriteRenderer>().sprite = imageOff;
+            GetComponent<SpriteRenderer>().sprite = imageOff;//オフの画像をとってくる
         }
     }
 
@@ -29,21 +29,21 @@ public class SwitchAction : MonoBehaviour
     // 接触開始
     void OnTriggerEnter2D(Collider2D col)
     {
-        if (col.gameObject.tag == "Player")
+        if (col.gameObject.tag == "Player")//接触した物がプレイヤーなら
         {
-            if (on)
+            if (on)//オンの場合
             {
-                on = false;
-                GetComponent<SpriteRenderer>().sprite = imageOff;
-                MovingBlock movBlock = targetMoveBlock.GetComponent<MovingBlock>();
-                movBlock.Stop();
+                on = false;//オフにする
+                GetComponent<SpriteRenderer>().sprite = imageOff;//オフの画像にする
+                MovingBlock movBlock = targetMoveBlock.GetComponent<MovingBlock>();//targetMoveBlockのMovingBlockを取得する
+                movBlock.Stop();//そのブロックのStopメソッドを使う
             }
-            else
+            else//違う場合
             {
-                on = true;
-                GetComponent<SpriteRenderer>().sprite = imageOn;
-                MovingBlock movBlock = targetMoveBlock.GetComponent<MovingBlock>();
-                movBlock.Move();
+                on = true;//オンにする
+                GetComponent<SpriteRenderer>().sprite = imageOn;//オンの画像にする
+                MovingBlock movBlock = targetMoveBlock.GetComponent<MovingBlock>();//targetMoveBlockのMovingBlockを取得する
+                movBlock.Move();//そのブロックのMoveメソッドを使う
             }
         }
     }
