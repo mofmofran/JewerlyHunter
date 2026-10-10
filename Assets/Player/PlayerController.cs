@@ -1,6 +1,7 @@
+using JetBrains.Annotations;
 using UnityEngine;
 
-public enum GameState           // ゲームの状態
+public enum GameState           // ゲームの状態、enumで列挙型のクラスを作る
 {
     InGame,                     // ゲーム中
     GameClear,                  // ゲームクリア
@@ -17,20 +18,52 @@ public class PlayerController : MonoBehaviour
     public LayerMask groundLayer;  // 着地出来るレイヤー
     bool goJump = false;                   // ジャンプ開始フラグ
     bool onGround = false;                  // 地面フラグ
+    
     //アニメーション対応
     Animator animator;                // アニメーター
+    public string stopAnime = "PlayerStop"; // 停止アニメーション
+    public string moveAnime = "PlayerMove"; // 移動アニメーション
+    public string jumpAnime = "PlayerJump"; // ジャンプアニメーション
+    public string goalAnime = "PlayerGoal"; // ゴールアニメーション
+    public string deadAnime = "PlayerOver"; // ゲームオーバーアニメーション
+    string nowAnime = "";                  // 現在のアニメーション名
+    string oldAnime = "";                  // 1フレーム前のアニメーション名
 
     // ゲームの状態（テキストは誤植なのでここは次の記述が正解）
     public static GameState gameState = GameState.InGame;
 
+    //カメラ制御
+    public float camLeft = 0.0f; // カメラの左端
+    public float camRight = 0.0f; // カメラの右端
+    public float camTop = 0.0f;    // カメラの上端
+    public float camBottom = 0.0f; // カメラの下端
+
+    //多重スクロール
+    public GameObject subscreen;//サブスクリーンのオブジェクト
+
+    //強制スクロール
+    public bool isForceScrollx = false; // X軸の強制スクロールを有効にするかどうか
+    public float forceScrollSpeedx = 0.5f; // X軸の強制スクロールの速度
+    public bool isForceScrolly = false; // Y軸の強制スクロールを有効にするかどうか
+    public float forceScrollSpeedy = 0.5f; // Y軸の強制スクロールの速度
+
+    public int score = 0; // スコア
+
     void Start()
     {
         rbody = this.GetComponent<Rigidbody2D>();   // Rigidbody2Dを取ってくる
-       
+        animator = this.GetComponent<Animator>();   // Animatorを取ってくる
+        nowAnime = stopAnime; // 停止から開始する
+        oldAnime = stopAnime; // 停止から開始する
+        gameState = GameState.InGame; // ゲーム開始時はゲーム中
     }
 
     void Update()
     {
+        if (gameState != GameState.InGame) //ゲーム中でない場合
+        {
+            return; //アップデートを抜ける
+        }
         //地上判定
         onGround = Physics2D.CircleCast(transform.position,//発射位置
             0.2f,//円の半径
@@ -56,12 +89,70 @@ public class PlayerController : MonoBehaviour
             transform.localScale = new Vector2(-1, 1); // 左右反転させる
         }
 
-           
+        //アニメーション更新
+        if (onGround) //地面にいる場合
+        {
+
+            if (axisH == 0.0f) //速度が0の場合
+            {
+                nowAnime = stopAnime; //停止アニメーション
+            }
+            else //速度が0でない場合
+            {
+                nowAnime = moveAnime; //移動アニメーション
+            }
+        }
+        else //地面にいない場合
+        {
+            nowAnime = jumpAnime; //ジャンプアニメーション
+        }
+        if (nowAnime != oldAnime) 
+        { 
+            animator.Play(nowAnime);//アニメーションを再生する
+            oldAnime = nowAnime;
+        }
+
+
+
+
+        //カメラ制御
+        float x;
+        float y;
+        if (isForceScrollx) //X軸の強制スクロールが有効な場合
+        {
+            x = Camera.main.transform.position.x + (forceScrollSpeedx * Time.deltaTime); //カメラのx座標を強制スクロールさせる
+        }
+        else //X軸の強制スクロールが無効な場合
+        {
+            x = Mathf.Clamp(transform.position.x, camLeft, camRight); // カメラのx座標を制限する
+        }
+
+        if (isForceScrolly) //Y軸の強制スクロールが有効な場合
+        {
+            y = Camera.main.transform.position.y + (forceScrollSpeedy * Time.deltaTime); //カメラのy座標を強制スクロールさせる
+        }
+        else //Y軸の強制スクロールが無効な場合
+        {
+            y = Mathf.Clamp(transform.position.y, camBottom, camTop); // カメラのy座標を制限する
+        }
+        Vector3 camPos = new Vector3(x, y, -10); // カメラの位置のvector3を作る
+        Camera.main.transform.position = camPos; // カメラの位置を更新する
+
+        //サブスクリーンスクロール
+        if(subscreen != null) //サブスクリーンが存在する場合
+        {
+            y= subscreen.transform.position.y;//サブスクリーンのy座標を取得する
+            Vector3 subpos = new Vector3(x / 2.0f, y, subscreen.transform.position.z);//サブスクリーンの位置のvector3を作りX座標はカメラの位置の半分にする
+            subscreen.transform.position = subpos;//サブスクリーンの位置を更新する
+        }
     }
 
     void FixedUpdate()
     {
-        
+        if (gameState != GameState.InGame) //ゲーム中でない場合
+        {
+            return; //フィックスドアップデートを抜ける
+        }
         if (onGround || axisH != 0.0f) //地面にいるor速度が0でない場合
         {
             //速度を更新する
@@ -76,6 +167,7 @@ public class PlayerController : MonoBehaviour
             goJump = false; //ジャンプ開始フラグを下ろす
         }
 
+ 
 
     }
 
@@ -90,22 +182,35 @@ public class PlayerController : MonoBehaviour
         {
             GameOver();     // ゲームオーバー
         }
+        else if (collision.gameObject.tag == "ScoreItem")
+        {
+            ScoreItem item = collision.gameObject.GetComponent<ScoreItem>();// アイテムのスクリプトを取得
+            score = item.itemdata.value; // スコア加算
+            Destroy(collision.gameObject); // アイテムを消す
+        }
     }
     // ゴール
     public void Goal()
     {
-        
+        animator.Play(goalAnime); // ゴールアニメーション
+        gameState = GameState.GameClear;// ゲームクリア
+        GameStop(); // ゲーム停止
     }
     // ゲームオーバー
     public void GameOver()
     {
-        
-        gameState = GameState.GameOver;
+        animator.Play(deadAnime); // ゲームオーバーアニメーション
+
+        gameState = GameState.GameOver;// ゲームオーバー
+        GameStop(); // ゲーム停止
+        // ゲームオーバーの処理
+          GetComponent <CapsuleCollider2D>().enabled = false; // プレイヤーの当たり判定を無効化
+        rbody.AddForce(new Vector2(0, 5), ForceMode2D.Impulse); // 少し上に跳ね上げる
     }
 
     // ゲーム停止
-    void GameStop()
+    void GameStop()//これが無いと、ゴールやゲームオーバー後にプレイヤーが動き続けてしまう
     {
-
+        rbody.linearVelocity = new Vector2(0, 0); // 速度を0にして強制停止
     }
 }
