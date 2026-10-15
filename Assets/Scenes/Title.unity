@@ -406,6 +406,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sceneName: Stage1
+  submitAction:
+    m_Name: Submit
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: afeea8c3-4a96-4c68-92cd-63d21de8b0d1
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings:
+    - m_Name: 
+      m_Id: a4a9110d-8f32-4684-a67f-88d33c9a5739
+      m_Path: <Keyboard>/anyKey
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Submit
+      m_Flags: 0
+    m_Flags: 0
+    m_Priority: 0
 --- !u!114 &658190743
 MonoBehaviour:
   m_ObjectHideFlags: 0

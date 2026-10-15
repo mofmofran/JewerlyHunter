@@ -1,11 +1,19 @@
 using UnityEngine;
 using UnityEngine.SceneManagement; //シーンの切り替えに必要
 using TMPro;//TextMeshProの使用に必要
+using UnityEngine.InputSystem;
+using Unity.VisualScripting;//InputSystemの使用に必要
 
 public class ResultManager : MonoBehaviour
 {
     public TextMeshProUGUI scoreText;//スコア表示用テキストの参照
     public string sceneName;//シーン名
+
+void OnSubmit(InputValue value)
+    {
+        Load();
+    }
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {

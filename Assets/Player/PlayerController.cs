@@ -1,5 +1,6 @@
 using JetBrains.Annotations;
 using UnityEngine;
+using UnityEngine.InputSystem;//InputSystemを使うのに必要
 
 public enum GameState           // ゲームの状態、enumで列挙型のクラスを作る
 {
@@ -49,6 +50,19 @@ public class PlayerController : MonoBehaviour
 
     public int score = 0; // スコア
 
+    InputAction moveAction;//Moveアクション
+    InputAction jumpAction;//Jumpアクション
+
+    //Submitアクションを受け取る
+    void OnSubmit(InputValue value)//サブミットアクションを受け取る
+    {
+        if (gameState != GameState.InGame)//ゲーム中でなければ
+        {
+            GameManager gm = GameObject.FindFirstObjectByType<GameManager>();//gmにGameManagerを探して取得
+            gm.GameEnd();//GameEndメソッドへ
+        }
+    }
+
     void Start()
     {
         rbody = this.GetComponent<Rigidbody2D>();   // Rigidbody2Dを取ってくる
@@ -56,6 +70,13 @@ public class PlayerController : MonoBehaviour
         nowAnime = stopAnime; // 停止から開始する
         oldAnime = stopAnime; // 停止から開始する
         gameState = GameState.InGame; // ゲーム開始時はゲーム中
+
+        PlayerInput input = GetComponent<PlayerInput>();//PlayerInputを取得
+        moveAction = input.currentActionMap.FindAction("Move");//Moveアクションを取得
+        jumpAction = input.currentActionMap.FindAction("Jump");//Jumpアクションを取得
+        InputActionMap uiMap = input.actions.FindActionMap("UI");//UIマップを取得
+        uiMap.Disable();//UIマップを無効化
+
     }
 
     void Update()
@@ -71,14 +92,20 @@ public class PlayerController : MonoBehaviour
             0.0f, //発射距離
             groundLayer);//検出するレイヤー
 
-        if (Input.GetButtonDown("Jump")) //キャラクターをジャンプさせる
+        //if (Input.GetButtonDown("Jump")) //キャラクターをジャンプさせる
+        //{
+        //    goJump = true; // ジャンプ開始フラグを立てる
+        //}
+
+        if (jumpAction.WasPressedThisFrame())//ジャンプキーの入力を確認
         {
-            goJump = true; // ジャンプ開始フラグを立てる
+            goJump = true;//ジャンプフラグを立てる
         }
 
 
-        axisH = Input.GetAxisRaw("Horizontal");     //水平方向の入力をチェックする
+        //axisH = Input.GetAxisRaw("Horizontal");     //水平方向の入力をチェックする
 
+        axisH = moveAction.ReadValue<Vector2>().x;//MoveキーのX軸を取得
 
         if (axisH > 0.0f)                           // 向きの調整
         {
@@ -178,7 +205,7 @@ public class PlayerController : MonoBehaviour
         {
             Goal();         // ゴール！！
         }
-        else if (collision.gameObject.tag == "Dead")
+        else if (collision.gameObject.tag == "Dead" && gameState == GameState.InGame)//ゲーム中なら
         {
             GameOver();     // ゲームオーバー
         }
@@ -212,5 +239,10 @@ public class PlayerController : MonoBehaviour
     void GameStop()//これが無いと、ゴールやゲームオーバー後にプレイヤーが動き続けてしまう
     {
         rbody.linearVelocity = new Vector2(0, 0); // 速度を0にして強制停止
+        //Playerマップの無効化とUIマップの無効化
+        PlayerInput input = GetComponent<PlayerInput>();//PlayerInputを取得
+        input.currentActionMap.Disable();//Player無効化
+        input.SwitchCurrentActionMap("UI");//アクションマップをUIに変更
+        input.currentActionMap.Enable();//アクションマップになったUIを有効化
     }
 }

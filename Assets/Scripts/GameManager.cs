@@ -1,7 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;               // UIを使うのに必要
 using UnityEngine.SceneManagement; // シーンマネージャーを使うのに必要
-using TMPro;                        // TextMeshProを使うのに必要
+using TMPro;
+using UnityEngine.InputSystem;                        // TextMeshProを使うのに必要
 
 public class GameManager : MonoBehaviour
 {
@@ -23,6 +24,24 @@ public class GameManager : MonoBehaviour
     public GameObject scoreText;//スコアテキスト
     public static int totalScore; //合計スコアを入れる変数
     public int stageScore; //ステージスコアを入れる変数
+
+
+    public AudioClip meGameClear;//ゲームクリアSE
+    public AudioClip meGameOver;//ゲームオーバーSE
+
+    //ゲーム終了
+    public void GameEnd()
+    {
+        if (gameState == GameState.GameClear)//ゲームクリアなら
+        {
+            Next();//次へ
+        }
+        else if (gameState == GameState.GameOver)//ゲームオーバーなら
+        {
+            Restart();//リスタートへ
+        }
+    }
+
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -74,6 +93,9 @@ public class GameManager : MonoBehaviour
             totalScore += stageScore; //ステージスコアを合計スコアに加える
             stageScore = 0; //ステージスコアを0にする
             UpdateScore(); //スコア表示を更新する
+            AudioSource soundPlayer = GetComponent<AudioSource>();//AudioSourceを取得
+            soundPlayer.Stop();//BGM停止
+            soundPlayer.PlayOneShot(meGameClear);//ゲームクリア音を鳴らすメソッド
         }
         else if (PlayerController.gameState == GameState.GameOver)
         {
@@ -93,6 +115,10 @@ public class GameManager : MonoBehaviour
             {
                 timeCnt.isTimeOver = true; //時間制限を止める
             }
+
+            AudioSource soundPlayer = GetComponent<AudioSource>();//AudioSourceを取得
+            soundPlayer.Stop();//BGM停止
+            soundPlayer.PlayOneShot(meGameOver);//ゲームオーバー音を鳴らすメソッド
         }
 
 
